@@ -6,6 +6,7 @@ import { SkillManagerError, wrapError } from '../errors';
 import { DEFAULT_SKILL_FILENAME, ERROR_CODES, FILE_SIZE_LIMITS } from '../constants';
 import { withRetryAndTimeout } from '../retry';
 import { validateFileSize, validateTrustedUrl } from '../validation';
+import { saveMetadata, calculateContentHash } from '../metadata-manager';
 
 /**
  * Fetch a single file from a Git repository
@@ -67,6 +68,15 @@ export async function fetchGitFile(
     // Ensure skill directory exists and write SKILL.md
     const skillDir = await ensureSkillDirectory(skillsPath, skillName);
     await writeSkillFile(skillDir, DEFAULT_SKILL_FILENAME, content);
+
+    // Save metadata for skip checking on next sync
+    await saveMetadata(skillDir, {
+      remote: config.remote,
+      ref: ref,
+      type: config.type,
+      lastSync: new Date().toISOString(),
+      contentHash: await calculateContentHash(skillDir),
+    });
   } catch (error) {
     if (error instanceof SkillManagerError) {
       throw error;

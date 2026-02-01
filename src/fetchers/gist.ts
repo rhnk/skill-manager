@@ -12,6 +12,7 @@ import {
 } from '../constants';
 import { withRetryAndTimeout } from '../retry';
 import { validateFileSize, validateTrustedUrl } from '../validation';
+import { saveMetadata, calculateContentHash } from '../metadata-manager';
 
 interface GistFile {
   filename: string;
@@ -116,6 +117,15 @@ export async function fetchGist(
     // Ensure skill directory exists and write SKILL.md
     const skillDir = await ensureSkillDirectory(skillsPath, skillName);
     await writeSkillFile(skillDir, DEFAULT_SKILL_FILENAME, targetFile.content);
+
+    // Save metadata for skip checking on next sync
+    await saveMetadata(skillDir, {
+      remote: config.remote,
+      ref: config.ref, // For gist, ref is the revision SHA (optional)
+      type: config.type,
+      lastSync: new Date().toISOString(),
+      contentHash: await calculateContentHash(skillDir),
+    });
   } catch (error) {
     if (error instanceof SkillManagerError) {
       throw error;

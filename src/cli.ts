@@ -20,6 +20,10 @@ program
   .description('Sync all skills from config file')
   .option('-c, --config <path>', 'Path to config file')
   .option('-d, --dry-run', 'Show what would be synced without making changes', false)
+  .option(
+    '-f, --force [skills...]',
+    'Force re-sync specific skills (or all if no names provided), ignoring skip checks'
+  )
   .action(async (options) => {
     try {
       // Print header
@@ -46,8 +50,21 @@ program
         OutputFormatter.printDryRunMode();
       }
 
+      // Parse force option
+      // If --force is used without arguments, force is true (force all)
+      // If --force skill1 skill2, force is an array of skill names
+      let forceSkills: string[] | undefined;
+      if (options.force) {
+        if (Array.isArray(options.force)) {
+          forceSkills = options.force;
+        } else if (options.force === true) {
+          // --force without arguments: force all skills
+          forceSkills = config.skills.map((s) => Object.keys(s)[0]);
+        }
+      }
+
       // Sync skills
-      const results = await syncSkills(config, options.dryRun);
+      const results = await syncSkills(config, options.dryRun, forceSkills);
 
       // Print summary
       printSummary(results);

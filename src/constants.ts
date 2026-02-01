@@ -5,6 +5,9 @@
 /** Default skill file name */
 export const DEFAULT_SKILL_FILENAME = 'SKILL.md';
 
+/** Metadata file name */
+export const METADATA_FILENAME = '.skill-manager.json';
+
 /** Default skills base path */
 export const DEFAULT_SKILLS_PATH = '~/.claude/skills';
 

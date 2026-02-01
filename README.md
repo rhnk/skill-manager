@@ -11,6 +11,8 @@ A CLI tool to sync remote Git files, folders, repositories, and Gists to local s
   - **GIST**: GitHub Gist content
 - 📌 Version pinning with Git refs (branches, tags, commit SHAs)
 - 📌 Gist revision support (pin to specific Gist versions)
+- ⚡ Smart skip checking - avoids unnecessary re-syncs
+- 🔍 Local modification detection with interactive prompts
 - 🎯 Configurable skill paths with home directory support (`~`)
 - 🚀 Works with `npx` - no global installation needed
 - 🎨 Beautiful terminal output with progress indicators
@@ -143,6 +145,41 @@ npx skill-manager sync
 ```bash
 npx skill-manager sync --dry-run
 ```
+
+### Force re-sync (ignore skip checks)
+
+Force re-sync all skills:
+
+```bash
+npx skill-manager sync --force
+```
+
+Force re-sync specific skills:
+
+```bash
+npx skill-manager sync --force skill-name1 skill-name2
+```
+
+## Smart Skip Checking
+
+The tool automatically skips re-syncing skills when:
+
+- The skill has an explicit `ref` (tag/commit SHA) specified
+- The skill folder exists locally
+- The remote URL and ref haven't changed
+- No local modifications have been detected
+
+This significantly speeds up sync operations when most skills are already up-to-date.
+
+### Local Modification Detection
+
+If local modifications are detected in a skill:
+
+- **Interactive mode**: You'll be prompted to overwrite or skip
+- **Non-interactive mode** (CI/CD): Skill is skipped with a warning
+- **Force mode**: Local changes are overwritten
+
+The tool stores metadata in `.skill-manager.json` files within each skill directory to track sync state.
 
 ## Skill Types
 

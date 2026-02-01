@@ -5,15 +5,22 @@ import { validateSkillConfig } from './config';
 import { FetcherFactory } from './fetcher-factory';
 import { isSkillManagerError } from './errors';
 import { sanitizeSkillName } from './validation';
+import { shouldSkipSync } from './skip-checker';
+import { promptForOverwrite } from './interaction';
 
 /**
  * Sync all skills from configuration
  * Uses factory pattern for fetcher selection (Open/Closed Principle)
  * @param config Application configuration
  * @param dryRun If true, show what would be synced without making changes
+ * @param forceSkills Optional array of skill names to force sync (overrides skip check)
  * @returns Array of fetch results
  */
-export async function syncSkills(config: Config, dryRun: boolean = false): Promise<FetchResult[]> {
+export async function syncSkills(
+  config: Config,
+  dryRun: boolean = false,
+  forceSkills?: string[]
+): Promise<FetchResult[]> {
   const results: FetchResult[] = [];
 
   console.log(chalk.bold('\nSyncing skills...\n'));
@@ -47,6 +54,36 @@ export async function syncSkills(config: Config, dryRun: boolean = false): Promi
         continue;
       }
 
+      // Check if we should force this skill
+      const shouldForce = forceSkills && forceSkills.length > 0 && forceSkills.includes(skillName);
+
+      // Check if sync can be skipped (unless forced)
+      if (!shouldForce) {
+        const skipCheck = await shouldSkipSync(skillName, skillConfig, config.skillsPath);
+
+        if (skipCheck.shouldSkip) {
+          spinner.info(
+            `${chalk.cyan(skillName)} - ${chalk.yellow('Skipped')}: ${skipCheck.reason}`
+          );
+          results.push({ skillName, success: true, skipped: true, reason: skipCheck.reason });
+          continue;
+        }
+
+        // Handle local modifications
+        if (skipCheck.needsInteraction) {
+          spinner.stop();
+          const shouldOverwrite = await promptForOverwrite(skillName);
+          if (!shouldOverwrite) {
+            spinner.info(
+              `${chalk.cyan(skillName)} - ${chalk.yellow('Skipped')}: ${skipCheck.reason}`
+            );
+            results.push({ skillName, success: true, skipped: true, reason: skipCheck.reason });
+            continue;
+          }
+          spinner.start(`Syncing ${chalk.cyan(skillName)}`);
+        }
+      }
+
       // Get fetcher from factory (Open/Closed Principle - extensible without modification)
       const fetcher = FetcherFactory.getFetcher(skillConfig.type);
 
@@ -76,10 +113,14 @@ export async function syncSkills(config: Config, dryRun: boolean = false): Promi
 export function printSummary(results: FetchResult[]): void {
   console.log('\n' + chalk.bold('Summary:'));
 
-  const successful = results.filter((r) => r.success).length;
+  const successful = results.filter((r) => r.success && !r.skipped).length;
+  const skipped = results.filter((r) => r.skipped).length;
   const failed = results.filter((r) => !r.success).length;
 
   console.log(`${chalk.green('✓')} Successful: ${successful}`);
+  if (skipped > 0) {
+    console.log(`${chalk.yellow('⊘')} Skipped: ${skipped}`);
+  }
   if (failed > 0) {
     console.log(`${chalk.red('✗')} Failed: ${failed}`);
   }

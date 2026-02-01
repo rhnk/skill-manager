@@ -26,6 +26,28 @@ export interface FetchResult {
   skillName: string;
   success: boolean;
   error?: string;
+  skipped?: boolean;
+  reason?: string;
+}
+
+/**
+ * Metadata stored for each skill to track sync state
+ */
+export interface SkillMetadata {
+  remote: string;
+  ref?: string;
+  type: SkillType;
+  lastSync: string; // ISO timestamp
+  contentHash: string; // SHA-256 hash of directory contents
+}
+
+/**
+ * Result of skip check decision
+ */
+export interface SkipCheckResult {
+  shouldSkip: boolean;
+  reason?: string;
+  needsInteraction?: boolean;
 }
 
 /**

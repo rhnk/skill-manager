@@ -7,6 +7,7 @@ import { SkillManagerError, wrapError } from '../errors';
 import { ERROR_CODES } from '../constants';
 import { withRetry } from '../retry';
 import { validateFilePath } from '../validation';
+import { saveMetadata, calculateContentHash } from '../metadata-manager';
 
 /**
  * Fetch an entire Git repository
@@ -48,6 +49,15 @@ export async function fetchGitRepo(
     // Remove .git directory to avoid nested repos and reduce size
     const gitDir = path.join(skillDir, '.git');
     await removeDirectory(gitDir);
+
+    // Save metadata for skip checking on next sync
+    await saveMetadata(skillDir, {
+      remote: config.remote,
+      ref: ref,
+      type: config.type,
+      lastSync: new Date().toISOString(),
+      contentHash: await calculateContentHash(skillDir),
+    });
   } catch (error) {
     if (error instanceof SkillManagerError) {
       throw error;

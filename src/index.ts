@@ -14,3 +14,6 @@ export * from './retry';
 export * from './dependency-check';
 export * from './fetcher-factory';
 export * from './cli-utils';
+export * from './metadata-manager';
+export * from './skip-checker';
+export * from './interaction';

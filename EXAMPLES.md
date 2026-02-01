@@ -2,6 +2,33 @@
 
 This document provides various configuration examples for different use cases.
 
+## CLI Usage Examples
+
+### Basic sync
+```bash
+npx skill-manager sync
+```
+
+### Sync with custom config
+```bash
+npx skill-manager sync --config ./my-config.json
+```
+
+### Dry run (preview without changes)
+```bash
+npx skill-manager sync --dry-run
+```
+
+### Force re-sync all skills
+```bash
+npx skill-manager sync --force
+```
+
+### Force re-sync specific skills
+```bash
+npx skill-manager sync --force jira playwright-mcp-repo
+```
+
 ## Basic Example
 
 ```json

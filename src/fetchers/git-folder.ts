@@ -14,6 +14,7 @@ import { ERROR_CODES, TEMP_DIR_PREFIX } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 import { withRetry } from '../retry';
 import { validateFilePath } from '../validation';
+import { saveMetadata, calculateContentHash } from '../metadata-manager';
 
 /**
  * Fetch a specific folder from a Git repository
@@ -72,6 +73,15 @@ export async function fetchGitFolder(
 
     // Copy the folder contents
     await copyDirectory(sourcePath, skillDir);
+
+    // Save metadata for skip checking on next sync
+    await saveMetadata(skillDir, {
+      remote: config.remote,
+      ref: ref,
+      type: config.type,
+      lastSync: new Date().toISOString(),
+      contentHash: await calculateContentHash(skillDir),
+    });
   } catch (error) {
     if (error instanceof SkillManagerError) {
       throw error;
