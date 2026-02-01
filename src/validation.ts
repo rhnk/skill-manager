@@ -219,3 +219,38 @@ export function validateFilename(
     );
   }
 }
+
+/**
+ * Infer skill type from remote URL
+ * @param url Remote URL to analyze
+ * @returns Inferred skill type
+ */
+export function inferSkillType(url: string): 'GIT_FILE' | 'GIT_FOLDER' | 'GIT_REPO' | 'GIST' {
+  if (!url || typeof url !== 'string') {
+    throw new SkillManagerError(
+      'URL must be a non-empty string',
+      ERROR_CODES.VALIDATION_ERROR,
+      { url }
+    );
+  }
+
+  const trimmed = url.trim();
+
+  // Gist URLs
+  if (trimmed.includes('gist.github.com')) {
+    return 'GIST';
+  }
+
+  // Git file (has /blob/)
+  if (trimmed.includes('/blob/')) {
+    return 'GIT_FILE';
+  }
+
+  // Git folder (has /tree/)
+  if (trimmed.includes('/tree/')) {
+    return 'GIT_FOLDER';
+  }
+
+  // Default to repo for simple repository URLs
+  return 'GIT_REPO';
+}

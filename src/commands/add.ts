@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { AgentType, SkillConfig, SkillType } from '../types';
 import {
+  inferSkillType,
   sanitizeSkillName,
   validateFilename,
   validateGistUrl,
@@ -20,7 +21,7 @@ import { resolveHomePath } from '../utils';
 
 interface AddCommandOptions {
   name: string;
-  type: string;
+  type?: string;
   remote: string;
   ref?: string;
   filename?: string;
@@ -92,15 +93,32 @@ export async function addCommand(options: AddCommandOptions): Promise<void> {
     // 1. Validate and sanitize inputs
     skillName = sanitizeSkillName(options.name);
 
-    // Validate skill type
-    if (!VALID_SKILL_TYPES.includes(options.type as SkillType)) {
-      throw new SkillManagerError(
-        `Invalid skill type: ${options.type}. Must be one of: ${VALID_SKILL_TYPES.join(', ')}`,
-        ERROR_CODES.VALIDATION_ERROR,
-        { type: options.type }
-      );
+    // Infer type from URL if not provided, otherwise validate provided type
+    let skillType: SkillType;
+    if (!options.type) {
+      skillType = inferSkillType(options.remote);
+      console.log(chalk.gray(`Auto-detected skill type: ${skillType}`));
+    } else {
+      // Validate skill type
+      if (!VALID_SKILL_TYPES.includes(options.type as SkillType)) {
+        throw new SkillManagerError(
+          `Invalid skill type: ${options.type}. Must be one of: ${VALID_SKILL_TYPES.join(', ')}`,
+          ERROR_CODES.VALIDATION_ERROR,
+          { type: options.type }
+        );
+      }
+      skillType = options.type as SkillType;
+
+      // Validate that explicit type matches URL pattern
+      const inferredType = inferSkillType(options.remote);
+      if (skillType !== inferredType) {
+        console.log(
+          chalk.yellow(
+            `Warning: Specified type "${skillType}" doesn't match URL pattern (detected: "${inferredType}"). Using specified type.`
+          )
+        );
+      }
     }
-    const skillType = options.type as SkillType;
 
     // Validate remote URL
     if (skillType === 'GIST') {

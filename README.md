@@ -9,6 +9,7 @@ A CLI tool to manage and sync skills across multiple AI coding agents (Antigravi
   - **GIT_FOLDER**: Specific folder from a Git repository
   - **GIT_REPO**: Entire Git repository
   - **GIST**: GitHub Gist content
+- 🎯 **Auto-type detection**: Skill type is automatically inferred from URL patterns
 - 🤖 Multi-agent support with automatic symlink management
 - 📌 Version pinning with Git refs (branches, tags, commit SHAs)
 - 📌 Gist revision support (pin to specific Gist versions)
@@ -16,7 +17,6 @@ A CLI tool to manage and sync skills across multiple AI coding agents (Antigravi
 - 🔍 Local modification detection with interactive prompts
 - 🎯 Centralized skill storage in `~/.agents/skills`
 - 🔗 Automatic symlink creation to agent-specific directories
-- 🚀 Works with `npx` - no global installation needed
 - 🎨 Beautiful terminal output with progress indicators
 
 ## Installation
@@ -138,30 +138,53 @@ If you have an existing setup in the form of config.json then store it at `~/.ag
 When you add your first skill, the config file will be automatically created at `~/.agents/skill_manager_config.json`.
 
 ```bash
-# Your first command will create the config automatically
-npx skill-manager set --name my-skill --type GIT_FOLDER --remote https://github.com/owner/repo/tree/main/skills/my-skill
+# Your first command will create the config automatically (type is auto-detected)
+npx skill-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill
 ```
 
 ### Add or update a skill
 
-Use the `set` command to add a new skill or update an existing one:
+Use the `set` command to add a new skill or update an existing one. The `--type` parameter is optional and will be auto-detected from the URL pattern:
 
 ```bash
-# Add a skill with all agents
+# Add a skill with auto-detected type (recommended)
+npx skill-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill
+
+# Add a gist (auto-detected as GIST)
+npx skill-manager set --name jira --remote https://gist.github.com/user/gist_id --agent cursor claude-code
+
+# Add a single file (auto-detected as GIT_FILE)
+npx skill-manager set --name my-file --remote https://github.com/owner/repo/blob/main/path/to/file.md
+
+# Add entire repository (auto-detected as GIT_REPO)
+npx skill-manager set --name my-repo --remote https://github.com/owner/repo
+
+# Add with explicit type (overrides auto-detection)
 npx skill-manager set --name my-skill --type GIT_FOLDER --remote https://github.com/owner/repo/tree/main/skills/my-skill
 
-# Add a skill with specific agents
-npx skill-manager set --name jira --type GIST --remote https://gist.github.com/user/gist_id --agent cursor claude-code
-
 # Add a skill with version pinning
-npx skill-manager set --name my-skill --type GIT_REPO --remote https://github.com/owner/repo --ref v2.0.0
+npx skill-manager set --name my-skill --remote https://github.com/owner/repo --ref v2.0.0
 
 # Add a gist with specific file and revision
-npx skill-manager set --name my-gist --type GIST --remote https://gist.github.com/user/gist_id --ref abc123 --filename custom.md
+npx skill-manager set --name my-gist --remote https://gist.github.com/user/gist_id --ref abc123 --filename custom.md
 
 # Update an existing skill with new parameters
-npx skill-manager set --name my-skill --type GIT_FOLDER --remote https://github.com/owner/repo/tree/main/skills/my-skill --ref v2.0.0
+npx skill-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill --ref v2.0.0
 ```
+
+**Type Auto-Detection:**
+
+The tool automatically detects the skill type from the URL:
+- URLs with `gist.github.com` → `GIST`
+- URLs with `/blob/` → `GIT_FILE`
+- URLs with `/tree/` → `GIT_FOLDER`
+- Simple repository URLs → `GIT_REPO`
+
+You can still specify `--type` explicitly if needed, but it's usually not necessary. If both are provided, the explicit type takes precedence (with a warning if they don't match).
+
+**Backward Compatibility:**
+
+Existing configuration files with explicit `type` fields will continue to work without any changes. The auto-detection is only used when adding new skills via the CLI without specifying `--type`.
 
 > **Note:** The `add` command is available as an alias for `set` for backwards compatibility: `npx skill-manager add --name my-skill ...`
 
@@ -206,7 +229,7 @@ npx skill-manager sync
 
 ```bash
 npx skill-manager sync --config path/to/config.json
-npx skill-manager set --name my-skill --type GIST --remote url --config path/to/config.json
+npx skill-manager set --name my-skill --remote url --config path/to/config.json
 npx skill-manager list --config path/to/config.json
 ```
 
@@ -215,6 +238,7 @@ npx skill-manager list --config path/to/config.json
 ```bash
 export SKILL_MANAGER_CONFIG_PATH=/path/to/config.json
 npx skill-manager sync
+npx skill-manager set --name my-skill --remote https://github.com/owner/repo
 ```
 
 ### Dry run (preview changes)

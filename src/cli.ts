@@ -88,7 +88,7 @@ program
   .alias('add')
   .description('Add a new skill or update an existing one')
   .requiredOption('--name <name>', 'Name of the skill')
-  .requiredOption('--type <type>', 'Type of skill (GIT_FILE, GIT_FOLDER, GIT_REPO, GIST)')
+  .option('--type <type>', 'Type of skill (GIT_FILE, GIT_FOLDER, GIT_REPO, GIST) - auto-detected if not specified')
   .requiredOption('--remote <url>', 'Remote URL of the skill')
   .option('--ref <ref>', 'Git reference (branch, tag, or commit SHA)')
   .option('--filename <filename>', 'Specific file to fetch (for GIST type)')
