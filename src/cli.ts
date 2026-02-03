@@ -12,7 +12,7 @@ import { listCommand } from './commands/list';
 const program = new Command();
 
 program
-  .name('skill-manager')
+  .name('agent-manager')
   .description(
     'CLI tool to sync remote Git files, folders, repositories, and Gists to local skill folders'
   )

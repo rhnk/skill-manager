@@ -1,4 +1,4 @@
-# Skill Manager
+# Agent Manager
 
 A CLI tool to manage and sync skills across multiple AI coding agents (Antigravity, Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot) from remote Git files, folders, repositories, and Gists.
 
@@ -36,7 +36,9 @@ npm link
 Then use the command globally:
 
 ```bash
-skill-manager [options] [command]
+agent-manager [options] [command]
+# or use the alias
+am [options] [command]
 ```
 
 ## Usages
@@ -47,75 +49,75 @@ Use the `set` command to add a new skill or update an existing one.
 ```bash
 # Clone a skill
 # config automatically at `~/.agents/skill_manager_config.json`, if it is not present
-skill-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill
+agent-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill
 
 # Add a gist (auto-detected as GIST)
-skill-manager set --name my-gist --remote https://gist.github.com/user/gist_id --agent cursor claude-code
-skill-manager set --name my-gist --remote https://gist.github.com/user/gist_id --ref abc123 --filename custom.md
+agent-manager set --name my-gist --remote https://gist.github.com/user/gist_id --agent cursor claude-code
+agent-manager set --name my-gist --remote https://gist.github.com/user/gist_id --ref abc123 --filename custom.md
 
 # Add a single file (auto-detected as GIT_FILE)
-skill-manager set --name my-file --remote https://github.com/owner/repo/blob/main/path/to/file.md
+agent-manager set --name my-file --remote https://github.com/owner/repo/blob/main/path/to/file.md
 
 # Add entire repository (auto-detected as GIT_REPO)
-skill-manager set --name my-repo --remote https://github.com/owner/repo
+agent-manager set --name my-repo --remote https://github.com/owner/repo
 
 # Update an existing skill with new parameters
-skill-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill --ref v2.0.0
+agent-manager set --name my-skill --remote https://github.com/owner/repo/tree/main/skills/my-skill --ref v2.0.0
 ```
 
 ### List skills
 
 ```bash
 # List all skills (basic view), use -v for verbose
-skill-manager ls -v
+agent-manager ls -v
 
 # List skills for specific agent
-skill-manager ls -a cursor
+agent-manager ls -a cursor
 ```
 
 ### Remove a skill
 
 ```bash
 # Interactive removal (shows selection menu)
-skill-manager rm
+agent-manager rm
 
 # Remove by name
-skill-manager rm my-skill
+agent-manager rm my-skill
 ```
 
 ### Sync all skills
 
 ```bash
-skill-manager sync
+agent-manager sync
 ```
 
 ### Command help
 
 ```bash
-skill-manager help
-skill-manager [command] --help
+agent-manager help
+agent-manager [command] --help
 ```
 
 ### Use custom config file
 
 ```bash
-skill-manager sync --config path/to/config.json
-skill-manager set --name my-skill --remote url --config path/to/config.json
-skill-manager list --config path/to/config.json
+agent-manager sync --config path/to/config.json
+agent-manager set --name my-skill --remote url --config path/to/config.json
+agent-manager list --config path/to/config.json
 ```
 
 ### Use environment variable
 
 ```bash
 export SKILL_MANAGER_CONFIG_PATH=/path/to/config.json
-skill-manager sync
-skill-manager set --name my-skill --remote https://github.com/owner/repo
+agent-manager sync
+agent-manager set --name my-skill --remote https://github.com/owner/repo
 ```
 
 ### Dry run (preview changes)
 
 ```bash
-skill-manager sync --dry-run
+agent-manager sync --dry-run
 ```
 
 ### Force re-sync (ignore skip checks)
@@ -123,13 +125,13 @@ skill-manager sync --dry-run
 Force re-sync all skills:
 
 ```bash
-skill-manager sync --force
+agent-manager sync --force
 ```
 
 Force re-sync specific skills:
 
 ```bash
-skill-manager sync --force skill-name1 skill-name2
+agent-manager sync --force skill-name1 skill-name2
 ```
 
 ### Supported Agents
@@ -297,7 +299,3 @@ npm test
 
 - Node.js 16 or higher
 - Git (for cloning repositories)
-
-## License
-
-MIT
